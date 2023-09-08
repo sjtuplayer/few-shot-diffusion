@@ -78,19 +78,11 @@ python3 train-whole.py --source_path=path_to_source_dataset --target_path=path_t
 If you find this code helpful for your research, please cite:
 
 ```
-
 @misc{hu2023phasic,
-
       title={Phasic Content Fusing Diffusion Model with Directional Distribution Consistency for Few-Shot Model Adaption}, 
-
       author={Teng Hu and Jiangning Zhang and Liang Liu and Ran Yi and Siqi Kou and Haokun Zhu and Xu Chen and Yabiao Wang and Chengjie Wang and Lizhuang Ma},
-
       year={2023},
-
       eprint={2309.03729},
-
       archivePrefix={arXiv},
-
 }
-
 ```
