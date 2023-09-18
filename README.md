@@ -37,19 +37,14 @@ Coming Soon!
 This project is based on [denoising-diffusion-pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch).
 
 We show the training method of our model here.
-The training process can be divided into three steps:
+The training process can be divided into four steps:
 
-(0) Install the dependency:
+### (0) Install the dependency:
+
 ```
 pip install denoising_diffusion_pytorch
 ```
 
-
-(1) Train the basic diffusion model on the source dataset;
-
-(2) Train the phasic content fusing module on the source dataset;
-
-(3) Train the whole model on both the source and target dataset;
 
 ### (1) Train the basic diffusion model on the source dataset
 
@@ -67,6 +62,14 @@ python3 train-recon.py --data_path=path_to_dataset --ckpt=path_to_checkpoint
 ```
 
 ### (3) Train the whole model on both the source and target dataset
+
+Before the last step, there is some data to prepare. Our Directional Distribution Consistency Loss relies
+on the image features extracted from CLIP model. So, you should extract the image features from the source dataset and target dataset before model adaption.
+You can run the following code to encode the images:
+```
+python3 train-whole.py --data_path=path_to_source_dataset --save_path=features1.npy
+python3 train-whole.py --data_path=path_to_target_dataset --save_path=features2.npy
+```
 
 Finally, train the whole model on both the source and target dataset:
 ```
