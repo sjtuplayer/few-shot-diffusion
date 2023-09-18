@@ -67,8 +67,8 @@ Before the last step, there is some data to prepare. Our Directional Distributio
 on the image features extracted from CLIP model. So, you should extract the image features from the source dataset and target dataset before model adaption.
 You can run the following code to encode the images:
 ```
-python3 train-whole.py --data_path=path_to_source_dataset --save_path=features1.npy
-python3 train-whole.py --data_path=path_to_target_dataset --save_path=features2.npy
+python3 feature-extractor.py --data_path=path_to_source_dataset --save_path=features1.npy
+python3 feature-extractor.py --data_path=path_to_target_dataset --save_path=features2.npy
 ```
 
 Finally, train the whole model on both the source and target dataset:
