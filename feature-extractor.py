@@ -45,8 +45,8 @@ class Data(Dataset):
     def __len__(self):
         return self.l
 parser = ArgumentParser()
-parser.add_argument('--data_path', type=str,default=None, help='Path to input directory')
-parser.add_argument('--save_path', type=str,default=None, help='Path to input directory')
+parser.add_argument('--data_path', type=str, help='Path to input directory')
+parser.add_argument('--save_path', type=str, help='Path to save the results')
 
 opts = parser.parse_args()
 model=Clip()
