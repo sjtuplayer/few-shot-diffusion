@@ -19,7 +19,7 @@ The follows are the results trained on Cartoon and Van Gogh painting dataset:
 
 ![image](imgs/visualization%20result.jpg)
 
-## Todo (Latest update: 2023/09/08)
+## Todo (Latest update: 2023/10/21)
 - [x] **Release the training code
 - [ ] **Release the pretrained models and training data
 
@@ -39,7 +39,10 @@ This project is based on [denoising-diffusion-pytorch](https://github.com/lucidr
 We show the training method of our model here.
 The training process can be divided into four steps:
 
-### (0) Install the dependency:
+### (0) Prepare:
+
+The pretrained models on face and church datasets can be downloaded from [Google Cloud](return 1/(1+torch.exp(-(x-0.005)*1000))) and [百度网盘](https://pan.baidu.com/s/13Dc3sWP3eQfpRVn56s6Fyw) (提取码：0306)
+
 
 ```
 pip install denoising_diffusion_pytorch
