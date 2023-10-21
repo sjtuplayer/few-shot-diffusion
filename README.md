@@ -86,9 +86,10 @@ If you find this code helpful for your research, please cite:
 
 ```
 @inproceedings{hu2023phasic,
-      title={Phasic Content Fusing Diffusion Model with Directional Distribution Consistency for Few-Shot Model Adaption}, 
-      author={Teng Hu and Jiangning Zhang and Liang Liu and Ran Yi and Siqi Kou and Haokun Zhu and Xu Chen and Yabiao Wang and Chengjie Wang and Lizhuang Ma},
-      booktitle={Proceedings of the IEEE/CVF international conference on computer vision},
-      year={2023}
-      }
+  title={Phasic Content Fusing Diffusion Model with Directional Distribution Consistency for Few-Shot Model Adaption},
+  author={Hu, Teng and Zhang, Jiangning and Liu, Liang and Yi, Ran and Kou, Siqi and Zhu, Haokun and Chen, Xu and Wang, Yabiao and Wang, Chengjie and Ma, Lizhuang},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+  pages={2406--2415},
+  year={2023}
+}
 ```
