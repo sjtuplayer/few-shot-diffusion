@@ -41,8 +41,9 @@ The training process can be divided into four steps:
 
 ### (0) Prepare:
 
-The pretrained models on face and church datasets can be downloaded from [Google Cloud](https://drive.google.com/drive/folders/1fegIkFmdQSYqxCglJAJmk29gMqPVQpkC?usp=sharing) and [百度网盘](https://pan.baidu.com/s/13Dc3sWP3eQfpRVn56s6Fyw) (提取码：0306)
+The pretrained diffusion models on face and church datasets can be downloaded from [Google Cloud](https://drive.google.com/drive/folders/1fegIkFmdQSYqxCglJAJmk29gMqPVQpkC?usp=sharing) and [百度网盘](https://pan.baidu.com/s/13Dc3sWP3eQfpRVn56s6Fyw) (提取码：0306)
 
+Install the dependencies:
 
 ```
 pip install denoising_diffusion_pytorch
