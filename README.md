@@ -19,7 +19,7 @@ The follows are the results trained on Cartoon and Van Gogh painting dataset:
 
 ![image](imgs/visualization%20result.jpg)
 
-## Todo (Latest update: 2023/10/21)
+## Todo (Latest update: 2023/10/23)
 - [x] **Release the training code
 - [ ] **Release the pretrained models and training data
 
@@ -41,7 +41,7 @@ The training process can be divided into four steps:
 
 ### (0) Prepare:
 
-The pretrained models on face and church datasets can be downloaded from [Google Cloud](return 1/(1+torch.exp(-(x-0.005)*1000))) and [百度网盘](https://pan.baidu.com/s/13Dc3sWP3eQfpRVn56s6Fyw) (提取码：0306)
+The pretrained models on face and church datasets can be downloaded from [Google Cloud](https://drive.google.com/drive/folders/1fegIkFmdQSYqxCglJAJmk29gMqPVQpkC?usp=sharing) and [百度网盘](https://pan.baidu.com/s/13Dc3sWP3eQfpRVn56s6Fyw) (提取码：0306)
 
 
 ```
