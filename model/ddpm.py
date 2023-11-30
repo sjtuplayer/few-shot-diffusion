@@ -8,7 +8,7 @@ import torch
 from torch import nn, einsum
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-
+from util.resizer import Resizer
 from torch.optim import Adam
 from torchvision import transforms as T, utils
 
@@ -192,7 +192,7 @@ class GaussianDiffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def model_predictions(self, x, t, x_self_cond = None, clip_x_start = False):
-        model_output = self.model(x, t, x_self_cond)          #显存大量占用
+        model_output = self.model(x, t, x_self_cond)
         maybe_clip = partial(torch.clamp, min = -1., max = 1.) if clip_x_start else identity
 
         if self.objective == 'pred_noise':
@@ -205,32 +205,6 @@ class GaussianDiffusion(nn.Module):
             x_start = maybe_clip(x_start)
             pred_noise = self.predict_noise_from_start(x, t, x_start)
         return ModelPrediction(pred_noise, x_start)
-
-    # def model_predictions_merge(self, x, t, x_self_cond = None, clip_x_start = False):
-    #     # 中间的model_output随机进行batch内的线性组合
-    #     model_output0 = self.model(x, t, x_self_cond)
-    #     b=x.size(0)
-    #     if t[0]>100:
-    #         model_output = torch.zeros_like(model_output0).to(x.device).float()
-    #         for i in range(b):
-    #             z=torch.rand(b)
-    #             z=z/z.sum()
-    #             for j in range(b):
-    #                 model_output[i]+=z[j]*model_output0[j]
-    #     else:
-    #         model_output = model_output0
-    #     maybe_clip = partial(torch.clamp, min = -1., max = 1.) if clip_x_start else identity
-    #
-    #     if self.objective == 'pred_noise':
-    #         pred_noise = model_output
-    #         x_start = self.predict_start_from_noise(x, t, pred_noise)
-    #         x_start = maybe_clip(x_start)
-    #
-    #     elif self.objective == 'pred_x0':
-    #         x_start = model_output
-    #         x_start = maybe_clip(x_start)
-    #         pred_noise = self.predict_noise_from_start(x, t, x_start)
-    #     return ModelPrediction(pred_noise, x_start)
 
     @torch.no_grad()
     def p_mean_variance(self, x, t, x_self_cond = None, clip_denoised = True):
@@ -282,7 +256,7 @@ class GaussianDiffusion(nn.Module):
         return img
 
     @torch.no_grad()
-    def ddim_sample(self, shape, clip_denoised = True,loss_fn=None,sample_step=None,max_step=None,min_step=None,start_img=None,return_middle=False,condition=None,guid=None,middle_step=0,guid_step=700,style_enhance=0,filter_size=8):
+    def ddim_sample(self, shape, clip_denoised = True,sample_step=None,max_step=None,min_step=None,start_img=None,return_middle=False,condition=None,guid=None,middle_step=0,guid_step=700,style_enhance=0,filter_size=8):
         batch, device, total_timesteps, sampling_timesteps, eta, objective = shape[0], self.betas.device, self.num_timesteps, self.sampling_timesteps, self.ddim_sampling_eta, self.objective
         if sample_step is not None:
             sampling_timesteps=sample_step
@@ -313,8 +287,6 @@ class GaussianDiffusion(nn.Module):
         self_cond=condition
         for iter,(time, time_next) in enumerate(tqdm(time_pairs, desc = 'sampling loop time step')):
             time_cond = torch.full((batch,), time, device=device, dtype=torch.long)
-
-            #self_cond = x_start if self.self_condition else None
             if time_next>=middle_step:
                 pred_noise, x_start, *_ = self.model_predictions(img, time_cond, self_cond, clip_x_start = clip_denoised)
             else:
@@ -431,7 +403,7 @@ class GaussianDiffusion(nn.Module):
 
         loss = loss * extract(self.p2_loss_weight, t, loss.shape)
         return loss.mean()
-    def few_shot_p_losses(self, x_start, t, return_x,noise = None,x_self_cond=None):
+    def few_shot_p_losses(self, x_start, t, return_x,noise = None,x_self_cond=None,return_x0=False):
         b, c, h, w = x_start.shape
         noise = default(noise, lambda: torch.randn_like(x_start))
 
@@ -460,10 +432,14 @@ class GaussianDiffusion(nn.Module):
         else:
             raise ValueError(f'unknown objective {self.objective}')
 
+
         loss = self.loss_fn(model_out, target, reduction='none')
         loss = reduce(loss, 'b ... -> b (...)', 'mean')
 
         loss = loss * extract(self.p2_loss_weight, t, loss.shape)
+        # if return_x0:
+        #     x_start = self.predict_start_from_noise(x, t, model_out)
+        #     return x,loss.mean(-1),x_start
         return x,loss.mean(-1)
 
     def forward(self, img, *args, **kwargs):

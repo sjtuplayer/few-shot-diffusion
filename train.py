@@ -17,14 +17,14 @@ image_size=256
 model = MyUnet(
     dim = 64,
     dim_mults = (1, 2, 4, 8)
-).cuda()
+)
 model.prepare()
 diffusion = GaussianDiffusion(
     model,
     image_size = image_size,
     timesteps = 1000,   # number of steps
     loss_type = 'l1'    # L1 or L2
-).cuda()
+)
 
 
 class Train_Data(Dataset):
@@ -51,7 +51,12 @@ real_dataloader = DataLoader(real_data,
                                    shuffle=True,
                                    num_workers=8,
                                    drop_last=True)
-
+ckpt=torch.load('/home/huteng/DDPM2/checkpoints/481157.pth',map_location='cpu')
+for key in ckpt.keys():
+    print(key)
+diffusion.load_state_dict(ckpt)
+print('success')
+exit()
 optizer = Adam(diffusion.parameters(), lr = 1e-4, betas =(0.9, 0.99))
 global_step=0
 dir='output/'

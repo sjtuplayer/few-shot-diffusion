@@ -52,13 +52,14 @@ opts = parser.parse_args()
 model=Clip()
 dataset=Data(opts.data_path)
 test_dataloader = DataLoader(dataset,
-                              batch_size=10,
+                              batch_size=64,
                               shuffle=False,
                               num_workers=8,
                               drop_last=True)
 features=[]
 with torch.no_grad():
     for index,batch in enumerate(test_dataloader):
+        print(index)
         batch=batch.cuda()
         feature=model.encode_img(batch)
         features.append(feature.cpu())

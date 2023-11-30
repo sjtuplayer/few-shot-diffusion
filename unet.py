@@ -296,24 +296,24 @@ class MyUnet(Unet):
         self.two_stage_step = 0
         if two_stage_step is not None:
             self.two_stage_step = two_stage_step
-            self.ups2 = nn.ModuleList([])
-            time_dim = dim * 4
-            init_dim = default(init_dim, dim)
-            dims = [init_dim, *map(lambda m: dim * m, dim_mults)]
-            in_out = list(zip(dims[:-1], dims[1:]))
-            block_klass = partial(ResnetBlock, groups=resnet_block_groups)
-            for ind, (dim_in, dim_out) in enumerate(reversed(in_out)):
-                is_last = ind == (len(in_out) - 1)
-                self.ups2.append(nn.ModuleList([
-                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
-                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
-                    Residual(PreNorm(dim_out, LinearAttention(dim_out))),
-                    Upsample(dim_out, dim_in) if not is_last else nn.Conv2d(dim_out, dim_in, 3, padding=1)
-                ]))
-            #64*64*64;128*32*32;256*16*16;512*16*16
-            self.final2_res_block = block_klass(dim * 2, dim, time_emb_dim=time_dim)
-            self.final2_conv = nn.Conv2d(dim, self.out_dim, 1)
-            self.sinu_pos_emb2 = SinusoidalPosEmb(dim)
+        #     self.ups2 = nn.ModuleList([])
+        #     time_dim = dim * 4
+        #     init_dim = default(init_dim, dim)
+        #     dims = [init_dim, *map(lambda m: dim * m, dim_mults)]
+        #     in_out = list(zip(dims[:-1], dims[1:]))
+        #     block_klass = partial(ResnetBlock, groups=resnet_block_groups)
+        #     for ind, (dim_in, dim_out) in enumerate(reversed(in_out)):
+        #         is_last = ind == (len(in_out) - 1)
+        #         self.ups2.append(nn.ModuleList([
+        #             block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
+        #             block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
+        #             Residual(PreNorm(dim_out, LinearAttention(dim_out))),
+        #             Upsample(dim_out, dim_in) if not is_last else nn.Conv2d(dim_out, dim_in, 3, padding=1)
+        #         ]))
+        #     #64*64*64;128*32*32;256*16*16;512*16*16
+        #     self.final2_res_block = block_klass(dim * 2, dim, time_emb_dim=time_dim)
+        #     self.final2_conv = nn.Conv2d(dim, self.out_dim, 1)
+        #     self.sinu_pos_emb2 = SinusoidalPosEmb(dim)
         self.style_condition=style_condition
         if style_condition:
             #256*32*32 content
@@ -332,6 +332,8 @@ class MyUnet(Unet):
     # def shift_sigmoid(self,x):
     #     return (1+)
         #self.resize=torchvision.transforms.Resize([128,128])
+    def mt(self,t):
+        return 1/(1+torch.exp(self.two_stage_step-t))
     def forward(self, x, time, x_self_cond = None,feature_merge=None):
         if self.self_condition:
             x_self_cond = default(x_self_cond, lambda: torch.zeros_like(x))
@@ -351,7 +353,6 @@ class MyUnet(Unet):
                 x_cond=self.diffusion.p_losses(x_cond, time, return_x=True)
                 x_cond = self.init_conv(x_cond)
         for index,(block1, block2, attn, downsample) in enumerate(self.downs):
-
             if x_self_cond is not None:
                 with torch.no_grad():
                     x_cond = block1(x_cond, t)
@@ -370,37 +371,22 @@ class MyUnet(Unet):
         x = self.mid_attn(x)
         x = self.mid_block2(x, t)
         if x_self_cond is not None:
+            mt=self.mt(time).view(-1,1,1,1)
+            x_cond=x_cond*mt+(1-mt)*torch.randn_like(x_cond).cuda()
             x = self.c_content_condition(x,x_cond.detach())
-            #print('out',x.mean())
-        if time[0] >= self.two_stage_step:
-            for block1, block2, attn, upsample in self.ups:
-                x = torch.cat((x, h.pop()), dim = 1)
-                x = block1(x, t)
+        for block1, block2, attn, upsample in self.ups:
+            x = torch.cat((x, h.pop()), dim = 1)
+            x = block1(x, t)
 
-                x = torch.cat((x, h.pop()), dim = 1)
-                x = block2(x, t)
-                x = attn(x)
+            x = torch.cat((x, h.pop()), dim = 1)
+            x = block2(x, t)
+            x = attn(x)
 
-                x = upsample(x)
-            x = torch.cat((x, r), dim = 1)
+            x = upsample(x)
+        x = torch.cat((x, r), dim = 1)
 
-            x = self.final_res_block(x, t)
-            return self.final_conv(x)
-        else:
-            for block1, block2, attn, upsample in self.ups2:
-                x = torch.cat((x, h.pop()), dim=1)
-                x = block1(x, t)
-
-                x = torch.cat((x, h.pop()), dim=1)
-                x = block2(x, t)
-                x = attn(x)
-
-                x = upsample(x)
-
-            x = torch.cat((x, r), dim=1)
-
-            x = self.final2_res_block(x, t)
-            return self.final2_conv(x)
+        x = self.final_res_block(x, t)
+        return self.final_conv(x)
 class MyUnet2(nn.Module):
     def __init__(
         self,

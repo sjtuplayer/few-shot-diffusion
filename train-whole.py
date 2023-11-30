@@ -1,5 +1,4 @@
 import torch
-# from denoising_diffusion_pytorch import Unet
 from unet import MyUnet
 from model.ddpm import GaussianDiffusion
 from PIL import Image
@@ -8,18 +7,17 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision.utils import save_image
 import os
-import random
 from torch.optim import Adam
 import numpy as np
-import random
 import clip
 from style_loss import loss
 from argparse import ArgumentParser
-from util import resize_right
-import torchvision
 parser = ArgumentParser()
 parser.add_argument('--source_path', type=str,default=None, help='Path to input directory')
 parser.add_argument('--target_path', type=str,default=None, help='Path to input directory')
+parser.add_argument('--save_dir', type=str,default='output-whole', help='Path to input directory')
+parser.add_argument('--source_feature_path', type=str,default=None, help='Path to input directory')
+parser.add_argument('--target_feature_path', type=str,default=None, help='Path to input directory')
 parser.add_argument('--ckpt_path', type=str,default=None, help='Path to ckpt')
 opts = parser.parse_args()
 image_size=256
@@ -103,8 +101,8 @@ clip_model=Clip()
 style_loss = loss.VGGStyleLoss(transfer_mode=1, resize=True).cuda()
 train_data=Train_Data(opts.target_path)
 real_data=Train_Data(opts.source_path)
-features_source=torch.from_numpy(np.load('features1.npy')).cuda().mean(0)
-features_target=torch.from_numpy(np.load('features2.npy')).cuda().mean(0)
+features_source=torch.from_numpy(np.load(opts.source_feature_path)).cuda().mean(0)
+features_target=torch.from_numpy(np.load(opts.target_feature_path)).cuda().mean(0)
 feature_dir=(features_target-features_source).type(torch.HalfTensor).cuda().unsqueeze(0)
 print(feature_dir.shape,feature_dir.dtype)
 real_dataloader = DataLoader(real_data,
@@ -127,7 +125,7 @@ mse_loss=torch.nn.MSELoss(reduction='none')
 mse_loss_reduce=torch.nn.MSELoss()
 print(mse_loss(torch.zeros_like(feature_dir).cuda(),feature_dir).mean())
 cos_loss=torch.nn.CosineSimilarity(dim=1)
-save_dir='output-whole'
+save_dir=opts.save_dir
 os.makedirs(os.path.join(save_dir,'models'),exist_ok=True)
 os.makedirs(os.path.join(save_dir,'images'),exist_ok=True)
 opts.beta_f=1
@@ -148,8 +146,8 @@ for epoch in range(100):
             real_image = next(real_dataloader_iter, None)
         real_image = real_image.cuda()
         condition=real_image
-        if random.random()<0.5:
-            condition=None
+        # if random.random()<0.5:
+        #     condition=None
         if global_step%2==0:
             with torch.no_grad():
                 t, (x, _) = diffusion_target.few_shot_forward(real_image,step=300,x_self_cond=condition)
@@ -188,8 +186,19 @@ for epoch in range(100):
             loss.backward()
         if global_step%10==0 and global_step!=0:
             print('step=%d,dif1=%.4f, dif2=%.4f, fea=%.4f, sty=%.4f'%(global_step,float(loss_diffusion2),float(loss_diffusion),float(loss_feature),float(loss_style)))
-        if global_step%1==0:
+        if global_step%2==0:
             optimizer.step()
             optimizer.zero_grad()
+        if global_step%50==0:
+            noise_step = 600
+            t = torch.ones(len(real_image)).long().to('cuda') * noise_step
+            noises = diffusion_target.p_losses(real_image, t, return_x=True)
+            sampled_images, sampled_middle_images = diffusion_target.ddim_sample(real_image.shape, sample_step=25,
+                                                                                 return_middle=True, start_img=noises,
+                                                                                 max_step=noise_step,
+                                                                                 min_step=-1, condition=condition,
+                                                                                 guid_step=300,guid=condition)
+            save_image(torch.cat((real_image, noises, sampled_middle_images, sampled_images), dim=0),
+                       os.path.join(save_dir, 'images/%d-sample.jpg' % global_step), nrow=batch_size, normalize=False)
+            torch.save(diffusion_target.state_dict(), save_dir + '/models/%d.pth' % global_step)
         global_step += 1
-    torch.save(diffusion_target.state_dict(),save_dir+'models/%d.pth'%epoch)
