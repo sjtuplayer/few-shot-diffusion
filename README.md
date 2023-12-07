@@ -45,14 +45,14 @@ pip install denoising_diffusion_pytorch==0.28.0
 
 #### Download the few-shot target dataset 
 
-The few-shot target dataset can be downloaded from [Google Cloud](https://drive.google.com/drive/folders/1VAJU5yEolmd2xAIUI7xvGNaHKBs4B7QX?usp=drive_link).
+The few-shot target dataset can be downloaded from [few-shot target dataset](https://drive.google.com/drive/folders/1VAJU5yEolmd2xAIUI7xvGNaHKBs4B7QX?usp=drive_link).
 
 
 
 #### Download the pretrained diffusion model on FFHQ.
 Both the pretrained diffusion model on FFHQ (`ffhq.pth`) 
 and phasic content fusing diffusion model on FFHQ (`ffhq-recon.pth`) can be downloaded 
-from [Google Cloud](https://drive.google.com/drive/folders/1XTDbNEsDxfA8ZHIG9nFRTESxdOZrh5pZ?usp=sharing).
+from [pretrained source-domain diffusion model](https://drive.google.com/drive/folders/1XTDbNEsDxfA8ZHIG9nFRTESxdOZrh5pZ?usp=sharing).
 
 
 #### Or you can just train the two models on the source dataset
@@ -101,7 +101,7 @@ like cartoon and VanGogh_face, 300-500 iterations are enough while for Sketches,
 ## Inference
 
 There are some pretrained checkpoints you can directly downloaded from:
-[Google Cloud](https://drive.google.com/drive/folders/1luEH2SrETjj5rfZcmIxibhwBVBNA5S8F?usp=sharing) 
+[target-domain diffusion model](https://drive.google.com/drive/folders/1luEH2SrETjj5rfZcmIxibhwBVBNA5S8F?usp=sharing) 
 which contains:
 
 | Source Domain | Target Domain                  |
