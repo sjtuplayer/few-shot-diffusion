@@ -43,6 +43,12 @@ The training process can be divided into four steps:
 pip install denoising_diffusion_pytorch==0.28.0
 ```
 
+#### Download the few-shot target dataset 
+
+The few-shot target dataset can be downloaded from [Google Cloud](https://drive.google.com/drive/folders/1VAJU5yEolmd2xAIUI7xvGNaHKBs4B7QX?usp=drive_link).
+
+
+
 #### Download the pretrained diffusion model on FFHQ.
 Both the pretrained diffusion model on FFHQ (`ffhq.pth`) 
 and phasic content fusing diffusion model on FFHQ (`ffhq-recon.pth`) can be downloaded 
